@@ -2,6 +2,7 @@ package com.federal.holidays.controller;
 
 import com.federal.holidays.entity.Country;
 import com.federal.holidays.service.CountryService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,13 +33,13 @@ public class CountryController {
         return ResponseEntity.ok(countryService.getCountryByCode(countryCode));
     }
     @PostMapping("/countries/add")
-    public ResponseEntity<Country> addCountry(@RequestBody Country country){
+    public ResponseEntity<Country> addCountry(@Valid @RequestBody Country country){
         Country countryCreated = countryService.addCountry(country);
         return ResponseEntity.status(HttpStatus.CREATED).body(countryCreated);
     }
 
     @PutMapping("/countries/update/{id}")
-    public ResponseEntity<Country> updateCountry(@PathVariable int id , @RequestBody Country countryData){
+    public ResponseEntity<Country> updateCountry(@PathVariable int id , @Valid @RequestBody Country countryData){
         Country countryUpdated = countryService.updateCountry(id, countryData);
         return ResponseEntity.ok(countryUpdated);
     }

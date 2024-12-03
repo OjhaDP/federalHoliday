@@ -1,6 +1,8 @@
 package com.federal.holidays.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,8 +18,10 @@ public class Holiday {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "holiday_Id")
     private int id;
+
     @Column(name = "holiday_name")
     private String name;
+
     @Column(name = "holiday_date")
     private LocalDate date;
     @ManyToOne

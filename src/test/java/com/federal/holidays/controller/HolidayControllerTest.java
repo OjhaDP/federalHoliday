@@ -95,7 +95,7 @@ public class HolidayControllerTest {
 
         when(holidayService.getCountryByCode("IN")).thenReturn(country);
         doNothing().when(holidayService).addHoliday(any(Holiday.class));
-        ResponseEntity<HttpStatus> response = holidayController.addHoliday(holidayRequest);
+        ResponseEntity<String> response = holidayController.addHoliday(holidayRequest);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         verify(holidayService, times(1)).addHoliday(any(Holiday.class));
     }

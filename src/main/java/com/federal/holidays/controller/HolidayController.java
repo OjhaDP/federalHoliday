@@ -67,15 +67,19 @@ public class HolidayController {
     }
 
     @PostMapping("/holiday/add")
-    public ResponseEntity<HttpStatus> addHoliday(@RequestBody HolidayRequest holidayRequest) {
+    public ResponseEntity<String> addHoliday(@RequestBody HolidayRequest holidayRequest) {
         Holiday holiday = new Holiday();
         holiday.setName(holidayRequest.getName());
         holiday.setDate(holidayRequest.getDate());
         Country country = holidayService.getCountryByCode(holidayRequest.getCountryCode());
         holiday.setCountry(country);
+        boolean exists = holidayService.getExistsByCountryCodeAndNameAndDate(holidayRequest.getCountryCode(), holidayRequest.getName(), holidayRequest.getDate());
+        if (!exists) {
+            holidayService.addHoliday(holiday);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Holiday addedd successfully!");
+        }
+        return ResponseEntity.status(HttpStatus.CONFLICT).body("Holiday already exists for the given country, name, and date.");
 
-        holidayService.addHoliday(holiday);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/holiday/update/{id}")
@@ -145,7 +149,6 @@ public class HolidayController {
         holidayService.addHolidaysFromFile(holidays);
         return "Record saved in database successfully :"+ duplicateErrors;
     }
-
     private void validateRecord(String name, String countryName, String countryCode, String fileName) throws InvalidCsvException {
 
         if (!countryCode.matches("[a-zA-Z]+")) {
