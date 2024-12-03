@@ -3,6 +3,7 @@ package com.federal.holidays.service;
 import com.federal.holidays.entity.Country;
 import com.federal.holidays.entity.Holiday;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface HolidayService {
@@ -16,4 +17,5 @@ public interface HolidayService {
     void deleteHolidayById(int id);
     Country getCountryByCode(String countryCode);
     void addHolidaysFromFile(List<Holiday> holidays);
+    boolean getExistsByCountryCodeAndNameAndDate(String countryCode, String countryName, LocalDate date);
 }

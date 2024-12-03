@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -81,4 +82,10 @@ public class HolidayServiceImpl implements HolidayService {
     public void addHolidaysFromFile(List<Holiday> holidays) {
         holidayRepository.saveAll(holidays);
     }
+
+    @Override
+    public boolean getExistsByCountryCodeAndNameAndDate(String countryCode, String countryName, LocalDate date) {
+        return holidayRepository.existsByCountry_CountryCodeAndNameAndDate(countryCode, countryName, date);
+    }
+
 }
