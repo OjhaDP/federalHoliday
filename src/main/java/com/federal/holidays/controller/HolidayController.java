@@ -35,7 +35,7 @@ public class HolidayController {
         return ResponseEntity.ok(holiday);
     }
 
-    @GetMapping("/{countryCode}")
+    @GetMapping("/country/{countryCode}")
     public ResponseEntity<List<Holiday>> getListHolidayByCountryCode(@PathVariable String  countryCode){
         List<Holiday> holidayList = holidayService.listHolidaysByCountry(countryCode);
         return ResponseEntity.ok(holidayList);
