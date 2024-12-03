@@ -18,6 +18,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -100,54 +101,63 @@ public class HolidayController {
     }
 
     @PostMapping("/holiday/upload")
-    public String uploadFile(@RequestParam("file") MultipartFile file) {
+    public String uploadFile(@RequestParam("files") MultipartFile[] files) {
         List<Holiday> holidays = new ArrayList<>();
         Set<String> uniqueKeys = new HashSet<>();
         Set<LocalDate> uniqueDate = new HashSet<>();
         StringBuilder duplicateErrors = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-            Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader);
+        LocalDate date;
+        for (MultipartFile file : files) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+                Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader);
 
-            for (CSVRecord record : records) {
+                for (CSVRecord record : records) {
 
-                String name = record.get("Name");
-                LocalDate date = LocalDate.parse(record.get("Date"));
-                String countryName = record.get("Country");
-                String countryCode = record.get("CountryCode");
-                String uniqueKey = countryCode + "-" + name + "-" + date;
-                validateRecord(name, countryName, countryCode, file.getOriginalFilename());
+                    String name = record.get("Name");
+                    try {
+                        date = LocalDate.parse(record.get("Date"));
+                    } catch (DateTimeParseException e) {
+                        throw new InvalidCsvException("Invalid Date : " + name + ". It must be proper Date format YYYY-MM-DD.", file.getOriginalFilename());
+                    }
+                    String countryName = record.get("Country");
+                    String countryCode = record.get("CountryCode");
+                    String uniqueKey = countryCode + "-" + name + "-" + date;
+                    validateRecord(name, countryName, countryCode, file.getOriginalFilename());
 
-                // Check for duplicates in the database
-                if (holidayService.getExistsByCountryCodeAndNameAndDate(countryCode, countryName, date) || !uniqueKeys.add(uniqueKey) || !uniqueDate.add(date)) {
+                    // Check for duplicates in the database
+                    if (holidayService.getExistsByCountryCodeAndNameAndDate(countryCode, countryName, date)
+                            || !uniqueKeys.add(uniqueKey) || !uniqueDate.add(date)) {
 
                         duplicateErrors.append("Duplicate found in database: ")
                                 .append("CountryCode=").append(countryCode)
                                 .append(", Name=").append(name)
                                 .append(", Date=").append(date).append("\n");
                         continue;
+                    }
+
+                    Country country = countryRepository.findByCountryCode(countryCode)
+                            .orElseGet(() -> {
+                                Country newCountry = new Country();
+                                newCountry.setCountryName(countryName);
+                                newCountry.setCountryCode(countryCode);
+                                return countryRepository.save(newCountry);
+                            });
+
+                    Holiday holiday = new Holiday();
+                    holiday.setName(name);
+                    holiday.setDate(date);
+                    holiday.setCountry(country);
+
+                    holidays.add(holiday);
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
+                return "Error processing the file: " + e.getMessage();
+              }
+           }
+            holidayService.addHolidaysFromFile(holidays);
+            return "Record saved in database successfully :" + duplicateErrors;
 
-                Country country = countryRepository.findByCountryCode(countryCode)
-                        .orElseGet(() -> {
-                            Country newCountry = new Country();
-                            newCountry.setCountryName(countryName);
-                            newCountry.setCountryCode(countryCode);
-                            return countryRepository.save(newCountry);
-                        });
-
-                Holiday holiday = new Holiday();
-                holiday.setName(name);
-                holiday.setDate(date);
-                holiday.setCountry(country);
-
-                holidays.add(holiday);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "Error processing the file: " + e.getMessage();
-        }
-        holidayService.addHolidaysFromFile(holidays);
-        return "Record saved in database successfully :"+ duplicateErrors;
     }
     private void validateRecord(String name, String countryName, String countryCode, String fileName) throws InvalidCsvException {
 
