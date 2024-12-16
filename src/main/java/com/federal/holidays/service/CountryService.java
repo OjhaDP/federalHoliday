@@ -10,7 +10,6 @@ public interface CountryService {
     List<Country> getAllCountries();
     Country getCountryById(int id);
     Country getCountryByCode(String code);
-
     Country updateCountry(int id, Country countryDetails);
     void deleteCountry(int id);
 }

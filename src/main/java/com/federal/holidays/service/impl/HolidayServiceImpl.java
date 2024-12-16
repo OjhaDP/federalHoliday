@@ -6,6 +6,7 @@ import com.federal.holidays.exception.ResourceNotFoundException;
 import com.federal.holidays.repository.CountryRepository;
 import com.federal.holidays.repository.HolidayRepository;
 import com.federal.holidays.service.HolidayService;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +35,12 @@ public class HolidayServiceImpl implements HolidayService {
         holidayRepository.saveAll(holidays);
     }
 
+    @Transactional
     @Override
     public Holiday updateHoliday(int id, Holiday holidayData) {
+        if (holidayData == null) {
+            throw new IllegalArgumentException("Holiday data cannot be null");
+        }
         Holiday holiday = holidayRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Holiday not found for this id :: " + id));
         holiday.setName(holidayData.getName());

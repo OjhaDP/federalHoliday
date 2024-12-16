@@ -6,6 +6,14 @@ import com.federal.holidays.entity.Holiday;
 import com.federal.holidays.exception.InvalidCsvException;
 import com.federal.holidays.repository.CountryRepository;
 import com.federal.holidays.service.HolidayService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +33,8 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/holiday")
+@Tag(name = "Holiday", description = "APIs to create, update and other operations of holiday.")
 public class HolidayController {
 
     @Autowired
@@ -34,25 +43,57 @@ public class HolidayController {
     @Autowired
     private CountryRepository countryRepository;
 
+    @Operation(summary = "Get all holidays")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found all holidays",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Holiday.class))})
+    })
     @GetMapping
     public ResponseEntity<List<Holiday>> getHolidays(){
         List<Holiday> holidays = holidayService.getAllHolidays();
         return ResponseEntity.ok(holidays);
     }
 
-    @GetMapping("/holiday/{id}")
+
+    @Operation(summary = "Get a holiday by ID")
+    @Parameters({
+            @Parameter(name = "id", description = "ID of the holiday to retrieve", required = true, schema = @Schema(type = "integer"))
+    })
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found the holiday",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Holiday.class))}),
+            @ApiResponse(responseCode = "404", description = "Holiday not found",
+                    content = @Content)
+    })
+    @GetMapping("/{id}")
     public ResponseEntity<Holiday> getHolidayById(@PathVariable int id){
         Holiday holiday = holidayService.getHolidayById(id);
         return ResponseEntity.ok(holiday);
     }
 
-    @GetMapping("/holiday/countryCode/{countryCode}")
+    @Operation(summary = "Get holidays by country code")
+    @Parameters({
+            @Parameter(name = "countryCode", description = "Country code to filter holidays by", required = true, schema = @Schema(type = "string"))
+    })
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found holidays",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Holiday.class))})
+    })
+    @GetMapping("/countryCode/{countryCode}")
     public ResponseEntity<List<Holiday>> getListHolidayByCountryCode(@PathVariable String  countryCode){
         List<Holiday> holidayList = holidayService.listHolidaysByCountry(countryCode);
         return ResponseEntity.ok(holidayList);
     }
 
-    @PostMapping("/holiday/addAll")
+    @Operation(summary = "Add multiple holidays")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Holidays added successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input")
+    })
+    @PostMapping("/addAll")
     public ResponseEntity<HttpStatus> addHolidays(@RequestBody List<HolidayRequest> holidayRequests){
         List<Holiday> holidayList = new ArrayList<>();
         holidayRequests.forEach(data -> {
@@ -67,7 +108,16 @@ public class HolidayController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @PostMapping("/holiday/add")
+    @Operation(summary = "Add a single holiday")
+    @Parameters({
+            @Parameter(name = "holidayRequest", description = "Holiday data to be added", required = true, schema = @Schema(implementation = HolidayRequest.class))
+    })
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Holiday added successfully"),
+            @ApiResponse(responseCode = "409", description = "Holiday already exists"),
+            @ApiResponse(responseCode = "400", description = "Invalid input")
+    })
+    @PostMapping("/add")
     public ResponseEntity<String> addHoliday(@RequestBody HolidayRequest holidayRequest) {
         Holiday holiday = new Holiday();
         holiday.setName(holidayRequest.getName());
@@ -83,7 +133,16 @@ public class HolidayController {
 
     }
 
-    @PutMapping("/holiday/update/{id}")
+    @Operation(summary = "Update a holiday")
+    @Parameters({
+            @Parameter(name = "id", description = "ID of the holiday to update", required = true, schema = @Schema(type = "integer")),
+            @Parameter(name = "holidayRequest", description = "Updated holiday data", required = true, schema = @Schema(implementation = HolidayRequest.class))
+    })
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Holiday updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Holiday not found")
+    })
+    @PutMapping("/update/{id}")
     public ResponseEntity<Holiday> updateHoliday(@PathVariable int id, @RequestBody HolidayRequest holidayRequest) {
         Holiday holidayDetails = new Holiday();
         holidayDetails.setName(holidayRequest.getName());
@@ -91,16 +150,37 @@ public class HolidayController {
         holidayDetails.setCountry(holidayService.getCountryByCode(holidayRequest.getCountryCode()));
 
         Holiday updatedHoliday = holidayService.updateHoliday(id, holidayDetails);
+        if (updatedHoliday == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
         return ResponseEntity.ok(updatedHoliday);
     }
 
-    @DeleteMapping("/holiday/delete/{id}")
+    @Operation(summary = "Delete a holiday")
+    @Parameters({
+            @Parameter(name = "id", description = "ID of the holiday to delete", required = true, schema = @Schema(type = "integer"))
+    })
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Holiday deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Holiday not found")
+    })
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteHoliday(@PathVariable int id) {
         holidayService.deleteHolidayById(id);
         return ResponseEntity.ok().body("Holidays Record Deleted Successfully...");
     }
 
-    @PostMapping("/holiday/upload")
+    @Operation(summary = "Upload holidays via file")
+    @Parameters({
+            @Parameter(description = "File(s) to upload. Accepted formats: CSV.",
+                    content = @Content(mediaType = "application/octet-stream",
+                            schema = @Schema(type = "string", format = "binary")))
+    })
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "File processed successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid file format")
+    })
+    @PostMapping("/upload")
     public String uploadFile(@RequestParam("files") MultipartFile[] files) {
         List<Holiday> holidays = new ArrayList<>();
         Set<String> uniqueKeys = new HashSet<>();
@@ -153,10 +233,13 @@ public class HolidayController {
             } catch (IOException e) {
                 e.printStackTrace();
                 return "Error processing the file: " + e.getMessage();
-              }
-           }
-            holidayService.addHolidaysFromFile(holidays);
-            return "Record saved in database successfully :" + duplicateErrors;
+            }
+        }
+        if(holidays.isEmpty()){
+            return "Record not saved because file is invalid or record not present.";
+        }else
+        holidayService.addHolidaysFromFile(holidays);
+        return "Record saved in database successfully :" + duplicateErrors;
 
     }
     private void validateRecord(String name, String countryName, String countryCode, String fileName) throws InvalidCsvException {

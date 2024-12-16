@@ -1,8 +1,6 @@
 package com.federal.holidays.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,6 +9,7 @@ import java.time.LocalDate;
 
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Data
 public class Holiday {
 
@@ -28,7 +27,5 @@ public class Holiday {
     @JoinColumn(name = "country_Id", nullable = false)
     private Country country;
 
-    public Holiday(int i, String diwali, LocalDate of, Country country) {
-    }
 }
 

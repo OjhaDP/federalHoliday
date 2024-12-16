@@ -4,6 +4,9 @@ import com.federal.holidays.entity.Country;
 import com.federal.holidays.exception.ResourceNotFoundException;
 import com.federal.holidays.repository.CountryRepository;
 import com.federal.holidays.service.CountryService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,12 +14,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Transactional
 @Service
 public class CountryServiceImpl implements CountryService {
 
     private Logger logger = LoggerFactory.getLogger(CountryServiceImpl.class);
     @Autowired
     private CountryRepository countryRepository;
+    @PersistenceContext
+    private EntityManager entityManager;
     @Override
     public Country addCountry(Country country) {
         country.setCountryCode(country.getCountryCode().toUpperCase());
@@ -55,7 +61,10 @@ public class CountryServiceImpl implements CountryService {
     @Override
     public void deleteCountry(int id) {
         Country country = countryRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Country not found for this id :"+ id));
-        countryRepository.delete(country);
+        if(country != null)
+        countryRepository.deleteById(id);
         logger.info("Country Record Deleted for this id :" + id);
+
     }
+
 }

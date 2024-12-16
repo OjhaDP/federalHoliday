@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class Country {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "country_Id")
     private int countryId;
 
@@ -28,4 +28,8 @@ public class Country {
     @Column(name = "country_Code", nullable = false, unique = true)
     private String countryCode;
 
+    public Country(String countryName, String countryCode) {
+        this.countryName = countryName;
+        this.countryCode = countryCode;
+    }
 }

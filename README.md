@@ -26,7 +26,7 @@ Retrieves a holiday by its ID:
 GET URL: {{base_url}}/api/holiday/{id} 
 
 Retrieves List holidays for a specific country:
-GET URL: {{base_url}}/api/holiday/{countryCode} 
+GET URL: {{base_url}}/api/holiday/countryCode/{countryCode} 
 
 POST URL: {{base_url}}/api/holiday/addAll Body: json [ { "name": "New Year", "date": "2024-01-01", "countryCode": "US" }, { "name": "Christmas", "date": "2024-12-25", "countryCode": "US" } ] 
 
@@ -34,10 +34,10 @@ Adds a single holiday:
 POST URL: {{base_url}}/api/holiday/add Body: json { "name": "Independence Day", "date": "2024-07-04", "countryCode": "US" } 
 
 Updates an existing holiday:
-PUT URL: {{base_url}}/api/holiday/{id} Body: json { "name": "Updated Holiday Name", "date": "2024-12-25", "countryCode": "US" } 
+PUT URL: {{base_url}}/api/holiday/update//{id} Body: json { "name": "Updated Holiday Name", "date": "2024-12-25", "countryCode": "US" } 
 
 Deletes a holiday by its ID:
-DELETE URL: {{base_url}}/api/holiday/{id} 
+DELETE URL: {{base_url}}/api/holiday/delete/{id} 
 
 update via file :
 POST URL: {{base_url}}/api/holiday/upload
@@ -48,16 +48,16 @@ Retrieves all countries:
 GET URL: {{base_url}}/api/countries 
 
 Retrieves a country by its code:
-GET URL: {{base_url}}/api/countries/code/{code} 
+GET URL: {{base_url}}/api/countries/countryCode/{countryCode}
 
 Retrieves a country by its ID:
-GET URL: {{base_url}}/api/countries/id/{id} 
+GET URL: {{base_url}}/api/countries/{countryId}
 
 Adds a new country:
-POST URL: {{base_url}}/api/countries Body: json { "name": "Canada", "code": "CA" } 
+POST URL: {{base_url}}/api/countries/add Body: json { "name": "Canada", "code": "CA" } 
 
 Updates an existing country:
-PUT URL: {{base_url}}/api/countries/{id} Body: json { "name": "Updated Country Name", "code": "CA" } 
+PUT URL: {{base_url}}/api/countries/update/{id} Body: json { "name": "Updated Country Name", "code": "CA" } 
 
 Deletes a country by its ID:
-DELETE URL: {{base_url}}/api/countries/{id} 
+DELETE URL: {{base_url}}/api/countries/delete/{id}
